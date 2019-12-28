@@ -19,9 +19,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
+  "net/http"
+  "math/rand"
 
-
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/yaml.v2"
 )
@@ -35,6 +36,20 @@ type Config struct {
 	Server serverConfig `yaml:"server"`
 }
 
+var (
+	// Create a summary to track fictional interservice RPC latencies for three
+	// distinct services with different latency distributions. These services are
+	// differentiated via a "service" label.
+	rpcDurations = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Name:       "rpc_durations_seconds",
+			Help:       "RPC latency distributions.",
+			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+		},
+		[]string{"service"},
+	)
+)
+
 func setUpConfig() Config {
 	var config Config
 	configYaml, err := ioutil.ReadFile(".config.yaml")
@@ -47,11 +62,22 @@ func setUpConfig() Config {
 	return config
 }
 
+
+func init() {
+	// Register the summary and the histogram with Prometheus's default registry.
+	prometheus.MustRegister(rpcDurations)
+	// Add Go module build info.
+	prometheus.MustRegister(prometheus.NewBuildInfoCollector())
+}
+
+
 func health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
 func loadListen(w http.ResponseWriter, r *http.Request) {
+  v := rand.Float64()
+  rpcDurations.WithLabelValues("uniform").Observe(v)
 	w.WriteHeader(http.StatusOK)
 }
 
