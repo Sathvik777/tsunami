@@ -15,8 +15,51 @@ limitations under the License.
 */
 package main
 
-import "github.com/Sathvik777/tsunami/sample-http/cmd"
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gopkg.in/yaml.v2"
+)
+
+type serverConfig struct {
+	Port int `yaml:"port"`
+}
+
+//Config is a yaml replication
+type Config struct {
+	Server serverConfig `yaml:"server"`
+}
+
+func setUpConfig() Config {
+	var config Config
+	configYaml, err := ioutil.ReadFile(".config.yaml")
+	if err != nil {
+		log.Fatalf("failed to find config file : %s", err)
+	}
+	if err = yaml.Unmarshal(configYaml, &config); err != nil {
+		log.Fatalf("failed to unmarshal config file : %s", err)
+	}
+	return config
+}
+
+func health(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func loadListen(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
 
 func main() {
-	cmd.Execute()
+	config := setUpConfig()
+	http.HandleFunc("/health", health)
+	http.Handle("/metrics", promhttp.Handler())
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), nil); err != nil {
+		log.Fatal("Serving exited with error")
+	}
 }
