@@ -17,7 +17,7 @@ AiOps prometheus metric value estimator for time series data
     * `curl -L https://git.io/get_helm.sh | bash`
     * helm init
  * Prometheus
-    * `helm install stable/prometheus-operator --name=prometheus-operator --namespace=monitoring`
+    * `helm install stable/prometheus-operator --name=prometheus-operator --namespace=monitoring -f values.yaml`
 
 
 ### Examples
