@@ -1,6 +1,16 @@
 # Tsunami
 AiOps prometheus metric value estimator for time series data
 
+## Concept
+
+Extracting data (metrics) from Prometheus with timestamps. This data is time series, similar to stock market options. We are going to use a similar model to predict the direction of the metric based on time.
+
+## Bolts and Pieces
+* Data-extract
+* Train
+* Model management 
+* Model service (host)
+
 
 ### Requirements
 ```
